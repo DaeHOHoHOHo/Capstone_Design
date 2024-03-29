@@ -99,27 +99,34 @@ def func_listbox_double_click(event, func_listbox, listbox):
         function_content = extract_function_content(decompiled_content, selected_item)
         listbox.insert(tk.END, function_content)
 
-def extract_function_content(content, function_name):
-    # 함수 이름으로부터 시작 주소를 찾아내는 패턴 생성
-    start_pattern = rf"// Address range: .*{function_name}.*?\n(.*?)\n// Address range: (?:0x[0-9a-fA-F]+ - 0x[0-9a-fA-F]+|\Z)"
-    # 주어진 패턴으로부터 함수 시작 주소 추출
-    start_match = re.search(start_pattern, content, re.DOTALL)
+def extract_function_content(decompiled_content, selected_item):
+    start_marker = "// ------------------------ Functions -------------------------"
+    end_marker = "// --------------------- Meta-Information ---------------------"
+    
+    start_index = decompiled_content.find(start_marker)
+    if start_index == -1:
+        return "Start marker not found"
 
-    if start_match:
-        start_index = start_match.end()
-        # 다음 함수의 시작 주소 또는 Meta-Information 주석을 찾아내는 패턴 생성
-        end_pattern = r"(?:// Address range: 0x[0-9a-fA-F]+ - 0x[0-9a-fA-F]+|// --------------------- Meta-Information ---------------------)"
-        # 주어진 패턴으로부터 함수 끝 주소 추출
-        end_match = re.search(end_pattern, content[start_index:])
-        
-        if end_match:
-            end_index = start_index + end_match.start()
-            function_content = content[start_index:end_index].strip()
-            return function_content
-        else:
-            return "End comment not found."
+    end_index = decompiled_content.find(end_marker)
+    if end_index == -1:
+        return "End marker not found"
+
+    item_marker = "// Address range: 0x" + selected_item.split('_')[1]
+    item_index = decompiled_content.find(item_marker, start_index, end_index)
+    if item_index == -1:
+        return "Function not found"
+
+    content_start_index = decompiled_content.find('\n', item_index) + 1
+
+    next_marker_index = decompiled_content.find("// Address range", content_start_index, end_index)
+    if next_marker_index != -1:
+        function_content = decompiled_content[content_start_index:next_marker_index].strip()
     else:
-        return "Function not found."
+        function_content = decompiled_content[content_start_index:end_index].strip()
+
+    return function_content
+
+
 
 
 
