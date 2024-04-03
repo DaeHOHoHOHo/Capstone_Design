@@ -2,6 +2,7 @@ import tkinter as tk
 from fileMenu import perform_save, perform_save_as
 from tkinter import filedialog
 from Diassembly import disassemble_file
+from gptFunc import perform_gpt
 import subprocess
 import os
 import re
@@ -15,6 +16,8 @@ def file_menu(app, file_button, text_box):
     file_menu_popup.add_command(label="불러오기", command=lambda: perform_open(app, file_button, text_box))
     file_menu_popup.add_command(label="저장", command=perform_save)
     file_menu_popup.add_command(label="다른 이름으로 저장", command=perform_save_as)
+    file_menu_popup.add_command(label="전체 코드 보기", command=lambda: print_decompiled_code(text_box))
+    x = file_button.winfo_rootx()
     x = file_button.winfo_rootx()
     y = file_button.winfo_rooty() + file_button.winfo_height()
     file_menu_popup.post(x, y)
@@ -26,6 +29,16 @@ def compile_menu(app, compile_button, text_box, func_box):
     y = compile_button.winfo_rooty() + compile_button.winfo_height()
     compile_menu_popup.post(x, y)
 
+def gpt_menu(app, gpt_button, gpttext):
+    gpt_menu_popup = tk.Menu(app, tearoff=0)
+    gpt_menu_popup.add_command(label="ChatGpt 연동", command=lambda: perform_gpt(gpttext))
+    gpt_menu_popup.add_command(label="함수 이름 변경")
+    x = gpt_button.winfo_rootx()
+    y = gpt_button.winfo_rooty() + gpt_button.winfo_height()
+    gpt_menu_popup.post(x, y)
+
+
+
 def perform_open(app, file_button, text_box):
     global file_opened, opened_file_path
     file_path = filedialog.askopenfilename()
@@ -35,24 +48,15 @@ def perform_open(app, file_button, text_box):
         disassembled_content = disassemble_file(file_path)
         display_result(text_box, disassembled_content)
 
-def display_result(code_listbox, content):
-    code_listbox.delete(0, tk.END)
-    content_lines = content.split('\n')
-    max_lengths = [0] * 3
-    formatted_lines = []
-    for line in content_lines:
-        parts = line.split('\t')
-        for i, part in enumerate(parts):
-            max_lengths[i] = max(max_lengths[i], len(part))
-        formatted_lines.append(parts)
-    for parts in formatted_lines:
-        formatted_line = ''
-        for i, part in enumerate(parts):
-            formatted_part = part.ljust(max_lengths[i] + 2)
-            if i > 0:
-                formatted_line += '          '
-            formatted_line += formatted_part
-        code_listbox.insert(tk.END, formatted_line.rstrip())
+def display_result(text_box, content):
+    if isinstance(text_box, tk.Listbox):
+        text_box.delete(0, tk.END)
+        for line in content.split('\n'):
+            text_box.insert(tk.END, line)
+    else:
+        text_box.delete('1.0', tk.END)
+        text_box.insert('1.0', content)
+
 
 def perform_decompile(text_box, func_box):
     global file_opened, opened_file_path, decompiled_content 
@@ -91,13 +95,13 @@ def extract_func_prototypes(content):
                 func_prototypes.append(func_name)
     return '\n'.join(func_prototypes)
 
-def func_listbox_double_click(event, func_listbox, listbox):
+def func_listbox_double_click(event, func_listbox, text):
     selected_index = func_listbox.curselection()
     if selected_index:
         selected_item = func_listbox.get(selected_index)
-        listbox.delete(0, tk.END)
+        text.delete('1.0', tk.END)
         function_content = extract_function_content(decompiled_content, selected_item)
-        listbox.insert(tk.END, function_content)
+        text.insert(tk.END, function_content)
 
 def extract_function_content(decompiled_content, selected_item):
     start_marker = "// ------------------------ Functions -------------------------"
@@ -127,11 +131,11 @@ def extract_function_content(decompiled_content, selected_item):
     return function_content
 
 
-
-
-
-
-
-
+def print_decompiled_code(text_box):
+    global decompiled_content
+    if decompiled_content:
+        display_result(text_box, decompiled_content)
+    else:
+        print("디컴파일된 코드가 없습니다.")
 
 
