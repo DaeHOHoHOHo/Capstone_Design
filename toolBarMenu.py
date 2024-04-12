@@ -2,10 +2,12 @@ import tkinter as tk
 from fileMenu import perform_save, perform_save_as
 from tkinter import filedialog
 from Diassembly import disassemble_file
-from gptFunc import perform_gpt
+from gptFunc import perform_gpt, gpt_open
 import subprocess
 import os
 import re
+
+
 
 file_opened = False
 opened_file_path = None
@@ -16,7 +18,7 @@ def file_menu(app, file_button, text_box):
     file_menu_popup.add_command(label="불러오기", command=lambda: perform_open(app, file_button, text_box))
     file_menu_popup.add_command(label="저장", command=perform_save)
     file_menu_popup.add_command(label="다른 이름으로 저장", command=perform_save_as)
-    file_menu_popup.add_command(label="전체 코드 보기", command=lambda: print_decompiled_code(text_box))
+    file_menu_popup.add_command(label="전체 코드 보기 (F4)", command=lambda: print_decompiled_code(text_box))
     x = file_button.winfo_rootx()
     x = file_button.winfo_rootx()
     y = file_button.winfo_rooty() + file_button.winfo_height()
@@ -24,15 +26,16 @@ def file_menu(app, file_button, text_box):
 
 def compile_menu(app, compile_button, text_box, func_box):
     compile_menu_popup = tk.Menu(app, tearoff=0)
-    compile_menu_popup.add_command(label="컴파일", command=lambda: perform_decompile(text_box, func_box))
+    compile_menu_popup.add_command(label="컴파일 (F5)", command=lambda: perform_decompile(text_box, func_box))
     x = compile_button.winfo_rootx()
     y = compile_button.winfo_rooty() + compile_button.winfo_height()
     compile_menu_popup.post(x, y)
 
 def gpt_menu(app, gpt_button, gpttext):
     gpt_menu_popup = tk.Menu(app, tearoff=0)
-    gpt_menu_popup.add_command(label="ChatGpt 연동", command=lambda: perform_gpt(gpttext))
+    gpt_menu_popup.add_command(label="ChatGpt 연동 (Ctrl + F1)", command=lambda: perform_gpt(gpttext))
     gpt_menu_popup.add_command(label="함수 이름 변경")
+    gpt_menu_popup.add_command(label="GPT 열기 (Ctrl + F2)", command=lambda: gpt_open())
     x = gpt_button.winfo_rootx()
     y = gpt_button.winfo_rooty() + gpt_button.winfo_height()
     gpt_menu_popup.post(x, y)
