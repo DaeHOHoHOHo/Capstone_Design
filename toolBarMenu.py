@@ -146,7 +146,7 @@ def print_decompiled_code(text_box):
 def gpt_renaming(text_box):
     global decompiled_content
     if decompiled_content:
-        prompt = decompiled_content + "한국 사용자가 기능을 알아보기 쉽도록 함수명과 변수명으로 변환해"
+        prompt = "Replace the code after the periods with human-readable function and variable names." + decompiled_content
         display_result(text_box, get_completion(prompt))
     else:
         print("디컴파일된 코드가 없습니다.")
