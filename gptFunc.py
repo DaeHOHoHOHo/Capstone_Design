@@ -1,17 +1,21 @@
 import tkinter as tk
 from tkinter import scrolledtext, messagebox
 import openai
+from openai import OpenAI
+
 
 gptLogin = False
+client = OpenAI()
+
 
 def get_completion(prompt, model="gpt-3.5-turbo"):
     messages = [{"role": "user", "content": prompt}]
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model=model,
         messages=messages,
-        temperature=0,
     )
-    return response.choices[0].message["content"]
+    return response.choices[0].message.content
+
 
 def perform_gpt(gpttext):
     gpt_window = tk.Toplevel()
@@ -25,12 +29,47 @@ def perform_gpt(gpttext):
     input_entry.pack()
 
     def get_input():
-        openai.api_key = input_entry.get()
-        user_input = "GPT API key : " + input_entry.get()
-        gpttext.set(user_input)
-        gpt_window.destroy()
-        global gptLogin
-        gptLogin = True
+        client.api_key = input_entry.get()
+        try:
+        #Make your OpenAI API request here
+            user_input = "GPT API key : " + input_entry.get()
+            sub = "*" * 40
+            sub_input = user_input[:-40] + sub
+            gpttext.set(sub_input)
+            gpt_window.destroy()
+            global gptLogin
+            gptLogin = True
+            response = client.completions.create(
+                prompt="Hello world",
+                model="gpt-3.5-turbo-instruct"
+            )
+        except openai.APIError as e:
+        #Handle API error here, e.g. retry or log
+            user_input = "OpenAI API returned an API Error"
+
+            gpttext.set(user_input)
+            gpt_window.destroy()
+
+            print(f"OpenAI API returned an API Error: {e}")
+            pass
+        except openai.APIConnectionError as e:
+        #Handle connection error here
+            user_input = "OpenAI API returned an API Error"
+
+            gpttext.set(user_input)
+            gpt_window.destroy()
+
+            print(f"Failed to connect to OpenAI API: {e}")
+            pass
+        except openai.RateLimitError as e:
+        #Handle rate limit error (we recommend using exponential backoff)
+            user_input = "OpenAI API returned an API Error"
+
+            gpttext.set(user_input)
+            gpt_window.destroy()
+            
+            print(f"OpenAI API request exceeded rate limit: {e}")
+            pass
 
     submit_button = tk.Button(gpt_window, text="입력", command=get_input)
     submit_button.pack()

@@ -64,7 +64,7 @@ def display_result(text_box, content):
 def perform_decompile(text_box, func_box):
     global file_opened, opened_file_path, decompiled_content 
     if file_opened:
-        os.chdir("RetDec/bin")
+        os.chdir("bin")
         command2 = f'retdec-decompiler "{opened_file_path}"'
         try:
             subprocess.run(command2, shell=True, check=True)
@@ -146,7 +146,7 @@ def print_decompiled_code(text_box):
 def gpt_renaming(text_box):
     global decompiled_content
     if decompiled_content:
-        prompt = "Replace the code after the periods with human-readable function and variable names." + decompiled_content
+        prompt = "Replace the code after the periods with human-simple-readable function and variable names and you response only codes." + decompiled_content
         display_result(text_box, get_completion(prompt))
     else:
         print("디컴파일된 코드가 없습니다.")
